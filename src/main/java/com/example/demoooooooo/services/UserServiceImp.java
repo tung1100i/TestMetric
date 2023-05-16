@@ -8,21 +8,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.lang3.time.DateFormatUtils;
-import org.apache.tomcat.util.json.JSONParser;
-import org.apache.tomcat.util.json.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.configurationprocessor.json.JSONArray;
-import org.springframework.boot.configurationprocessor.json.JSONException;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.stereotype.Service;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -120,17 +112,8 @@ public class UserServiceImp implements IUserSiervice {
     @Override
     public List<Metric> getMetrics() {
         List<Metric> metrics = new ArrayList<>();
-
-        String parser;
         try {
-            parser = new String(Files.readAllBytes(Paths.get("D:\\Java_code\\Projects\\demoooooooo\\metrics.json")));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        JsonObject inputObject = JsonParser.parseString(parser).getAsJsonObject();
-
-        try {
-            JsonArray rows = inputObject.getAsJsonArray("rows");
+            JsonArray rows = getJsonObject().getAsJsonArray("rows");
             JsonArray panels;
             JsonObject object;
             JsonArray targets;
@@ -154,5 +137,15 @@ public class UserServiceImp implements IUserSiervice {
             e.printStackTrace();
         }
         return metrics;
+    }
+
+    private JsonObject getJsonObject() {
+        String parser;
+        try {
+            parser = new String(Files.readAllBytes(Paths.get("D:\\Java_code\\Projects\\demoooooooo\\metrics.json")));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return JsonParser.parseString(parser).getAsJsonObject();
     }
 }
