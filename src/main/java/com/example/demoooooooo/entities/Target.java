@@ -10,8 +10,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class Metric {
-    private String name;
-    private String type;
-    private List<Target> panels;
+public class Target {
+    private String metricName;
+    private String metricType;
+    private List<String> query;
 }

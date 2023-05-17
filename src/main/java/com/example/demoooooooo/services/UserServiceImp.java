@@ -1,6 +1,7 @@
 package com.example.demoooooooo.services;
 
 import com.example.demoooooooo.entities.Metric;
+import com.example.demoooooooo.entities.Target;
 import com.example.demoooooooo.entities.UserEntity;
 import com.example.demoooooooo.repositories.UserRepository;
 import com.google.gson.JsonArray;
@@ -111,32 +112,53 @@ public class UserServiceImp implements IUserSiervice {
 
     @Override
     public List<Metric> getMetrics() {
-        List<Metric> metrics = new ArrayList<>();
+        List<Metric> lstPanel = new ArrayList<>();
         try {
-            JsonArray rows = getJsonObject().getAsJsonArray("rows");
+            JsonArray layout = getJsonObject().getAsJsonArray("panels");
             JsonArray panels;
-            JsonObject object;
-            JsonArray targets;
-            for (JsonElement row : rows) {
-                panels = row.getAsJsonObject().getAsJsonArray("panels");
-                for (JsonElement panel : panels) {
-                    List<String> lstQuery = new ArrayList<>();
-                    object = panel.getAsJsonObject();
-                    targets = object.getAsJsonArray("targets");
-                    if (targets != null) {
-                        for (JsonElement target : targets) {
-                            lstQuery.add(target.getAsJsonObject().get("expr").getAsString());
+            JsonArray lstPanels;
+            int i = 0;
+            while (i < layout.size()) {
+                panels = layout.get(i).getAsJsonObject().getAsJsonArray("panels");
+                List<Target> lstMetricsPanel = new ArrayList<>();
+                if (panels.size() == 0) {
+                    int j = i + 1;
+                    if (!layout.get(j).getAsJsonObject().get("type").getAsString().equals("row")) {
+                        List<Target> lstMetrics = new ArrayList<>();
+                        while ((j < layout.size() - 1) && !layout.get(j).getAsJsonObject().get("type").getAsString().equals("row")) {
+                            JsonArray targets = layout.get(j).getAsJsonObject().getAsJsonArray("targets");
+                            List<String> lstQuery = new ArrayList<>();
+                            if (!(targets.isEmpty() || targets.isJsonNull())) {
+                                targets.forEach(item -> lstQuery.add(item.getAsJsonObject().get("expr").getAsString()));
+                                lstMetrics.add(new Target(layout.get(j).getAsJsonObject().get("title").getAsString(),
+                                    layout.get(j).getAsJsonObject().get("type").getAsString(), lstQuery));
+                            }
+                            j++;
                         }
-                        metrics.add(new Metric(object.get("title").getAsString(), object.get("type").getAsString(), lstQuery));
-                    } else {
-                        metrics.add(new Metric(object.get("title").getAsString(), object.get("type").getAsString(), new ArrayList<>()));
+                        lstPanel.add(new Metric(layout.get(i).getAsJsonObject().get("title").getAsString(),
+                            layout.get(i).getAsJsonObject().get("type").getAsString(), lstMetrics));
+                        i = j - 1;
                     }
+                } else {
+                    lstPanels = layout.get(i).getAsJsonObject().getAsJsonArray("panels");
+                    for (JsonElement nextPanel : lstPanels) {
+                        List<String> lstQueryMetric = new ArrayList<>();
+                        JsonArray targets = nextPanel.getAsJsonObject().getAsJsonArray("targets");
+                        if (!(targets.isEmpty() || targets.isJsonNull())) {
+                            targets.forEach(item -> lstQueryMetric.add(item.getAsJsonObject().get("expr").getAsString()));
+                        }
+                        lstMetricsPanel.add(new Target(nextPanel.getAsJsonObject().get("title").getAsString(),
+                            nextPanel.getAsJsonObject().get("type").getAsString(), lstQueryMetric));
+                    }
+                    lstPanel.add(new Metric(layout.get(i).getAsJsonObject().get("title").getAsString(),
+                        layout.get(i).getAsJsonObject().get("type").getAsString(), lstMetricsPanel));
                 }
+                i++;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return metrics;
+        return lstPanel;
     }
 
     private JsonObject getJsonObject() {
