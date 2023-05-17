@@ -116,7 +116,7 @@ public class UserServiceImp implements IUserSiervice {
         try {
             JsonArray layout = getJsonObject().getAsJsonArray("panels");
             JsonArray panels;
-            JsonArray lstPanels;
+            JsonArray targets;
             int i = 0;
             while (i < layout.size()) {
                 panels = layout.get(i).getAsJsonObject().getAsJsonArray("panels");
@@ -126,7 +126,7 @@ public class UserServiceImp implements IUserSiervice {
                     if (!layout.get(j).getAsJsonObject().get("type").getAsString().equals("row")) {
                         List<Target> lstMetrics = new ArrayList<>();
                         while ((j < layout.size() - 1) && !layout.get(j).getAsJsonObject().get("type").getAsString().equals("row")) {
-                            JsonArray targets = layout.get(j).getAsJsonObject().getAsJsonArray("targets");
+                            targets = layout.get(j).getAsJsonObject().getAsJsonArray("targets");
                             List<String> lstQuery = new ArrayList<>();
                             if (!(targets.isEmpty() || targets.isJsonNull())) {
                                 targets.forEach(item -> lstQuery.add(item.getAsJsonObject().get("expr").getAsString()));
@@ -140,10 +140,9 @@ public class UserServiceImp implements IUserSiervice {
                         i = j - 1;
                     }
                 } else {
-                    lstPanels = layout.get(i).getAsJsonObject().getAsJsonArray("panels");
-                    for (JsonElement nextPanel : lstPanels) {
+                    for (JsonElement nextPanel : panels) {
                         List<String> lstQueryMetric = new ArrayList<>();
-                        JsonArray targets = nextPanel.getAsJsonObject().getAsJsonArray("targets");
+                        targets = nextPanel.getAsJsonObject().getAsJsonArray("targets");
                         if (!(targets.isEmpty() || targets.isJsonNull())) {
                             targets.forEach(item -> lstQueryMetric.add(item.getAsJsonObject().get("expr").getAsString()));
                         }
